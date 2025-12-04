@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Piedra, Papel, Tijera </title>
+  <style>
+    :root{--bg:#0f172a;--card:#0b1220;--accent:#06b6d4;--muted:#94a3b8;--win:#16a34a;--lose:#ef4444}
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;color:#e6eef8;background:linear-gradient(180deg,#071029 0%, #092235 100%)}
+    .wrap{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;box-sizing:border-box}
+    .card{width:100%;max-width:520px;background:rgba(255,255,255,0.03);border-radius:14px;padding:18px;box-shadow:0 6px 30px rgba(2,6,23,0.6);backdrop-filter:blur(6px)}
+    h1{margin:0 0 8px;font-size:20px}
+    p.lead{margin:0 0 12px;color:var(--muted);font-size:14px}
+    .score{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+    .score .box{flex:1;background:rgba(255,255,255,0.02);padding:10px;border-radius:10px;text-align:center}
+    .big{font-size:20px;font-weight:700}
+    .muted{color:var(--muted);font-size:12px}
+    .choices{display:flex;gap:10px;justify-content:space-between;margin:12px 0}
+    .btn{flex:1;padding:14px;border-radius:12px;border:0;font-size:16px;background:#071832;color:white;box-shadow:0 6px 12px rgba(2,6,23,0.6)}
+    .btn:active{transform:translateY(2px)}
+    .btn.piedra{background:#1e3a8a;color:white;font-weight:700;text-transform:uppercase;}
+    .btn.papel{background:#1e3a8a;color:white;font-weight:700;text-transform:uppercase;}
+    .btn.tijera{background:#1e3a8a;color:white;font-weight:700;text-transform:uppercase;}
+    .result{margin-top:12px;padding:12px;border-radius:10px;background:rgba(255,255,255,0.02);min-height:56px;display:flex;align-items:center;justify-content:space-between}
+    .status{font-weight:700}
+    .controls{display:flex;gap:8px;margin-top:12px}
+    .secondary{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted)}
+    footer{margin-top:12px;color:var(--muted);font-size:12px;text-align:center}
+    @media (max-width:420px){.choices{flex-direction:column}.btn{padding:12px}}  
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>PIEDRA, PAPEL, TIJERA</h1>
+      <p class="lead">Toca un botón para jugar. Pulsa "Salir" para terminar la partida.</p>
+
+      <div class="score">
+        <div class="box">
+          <div class="muted">Puntos jugador</div>
+          <div id="userScore" class="big">0</div>
+        </div>
+        <div class="box">
+          <div class="muted">Puntos máquina</div>
+          <div id="botScore" class="big">0</div>
+        </div>
+      </div>
+
+      <div class="choices">
+        <button class="btn piedra" data-choice="piedra">🪨 PIEDRA</button>
+        <button class="btn papel" data-choice="papel">📄 PAPEL</button>
+        <button class="btn tijera" data-choice="tijera">✂️ TIJERA</button>
+      </div>
+
+      <div class="result" id="resultArea">
+        <div>
+          <div class="muted">Elección máquina</div>
+          <div id="botPick" style="font-weight:700">—</div>
+        </div>
+        <div style="text-align:right">
+          <div class="muted">Resultado</div>
+          <div id="resultText" class="status">—</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="restart" class="secondary">Reiniciar</button>
+        <button id="quit" class="secondary">Salir</button>
+      </div>
+
+      
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const opciones = ['piedra','papel','tijera'];
+      let userScore = 0, botScore = 0;
+      const userEl = document.getElementById('userScore');
+      const botEl = document.getElementById('botScore');
+      const botPickEl = document.getElementById('botPick');
+      const resultText = document.getElementById('resultText');
+
+      function actualizar() {
+        userEl.textContent = userScore;
+        botEl.textContent = botScore;
+      }
+
+      function jugar(eleccionUsuario) {
+        const num = Math.floor(Math.random()*3);
+        const eleccionMaquina = opciones[num];
+        botPickEl.textContent = eleccionMaquina;
+
+        if (eleccionUsuario === eleccionMaquina) {
+          resultText.textContent = 'Empate :)';
+          resultText.style.color = '';
+        } else if (
+          (eleccionUsuario === 'piedra' && eleccionMaquina === 'tijera') ||
+          (eleccionUsuario === 'papel' && eleccionMaquina === 'piedra') ||
+          (eleccionUsuario === 'tijera' && eleccionMaquina === 'papel')
+        ) {
+          userScore++;
+          actualizar();
+          resultText.textContent = '¡Tú ganas!';
+          resultText.style.color = getComputedStyle(document.documentElement).getPropertyValue('--win') || '#16a34a';
+        } else {
+          botScore++;
+          actualizar();
+          resultText.textContent = 'La máquina gana';
+          resultText.style.color = getComputedStyle(document.documentElement).getPropertyValue('--lose') || '#ef4444';
+        }
+      }
+
+      // Conecta botones
+      document.querySelectorAll('[data-choice]').forEach(btn => {
+        btn.addEventListener('click', ()=>{
+          const c = btn.getAttribute('data-choice');
+          jugar(c);
+        });
+      });
+
+      document.getElementById('restart').addEventListener('click', ()=>{
+        userScore = 0; botScore = 0; actualizar(); botPickEl.textContent = '—'; resultText.textContent = 'Partida reiniciada'; resultText.style.color = '';
+      });
+
+      document.getElementById('quit').addEventListener('click', ()=>{
+        resultText.textContent = 'Hasta la próxima.';
+        // Opcional: bloquear botones
+        document.querySelectorAll('[data-choice]').forEach(b=>b.disabled=true);
+      });
+
+      // Mejora UX: evitar zoom al tocar (iOS)
+      document.addEventListener('touchstart', function(){}, {passive:true});
+
+    })();
+  </script>
+</body>
+</html>
